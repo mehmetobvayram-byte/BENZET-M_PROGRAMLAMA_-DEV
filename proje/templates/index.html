@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Oto Yıkama Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            margin: 0;
+            padding: 50px;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            margin-bottom: 30px;
+        }
+
+        h1 { margin: 0; font-size: 46px; background: -webkit-linear-gradient(#38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+        
+        .pulse {
+            width: 14px; height: 14px;
+            background-color: #ef4444; 
+            border-radius: 50%; display: inline-block; margin-right: 15px;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+        .pulse.active {
+            background-color: #22c55e;
+            animation: pulsing 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+
+        @keyframes pulsing { to { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } }
+
+        .controls {
+            display: flex; gap: 20px; margin-bottom: 30px; padding: 25px; align-items: flex-end;
+        }
+        
+        .input-group { display: flex; flex-direction: column; gap: 8px;}
+        .input-group label { font-size: 14px; color: #94a3b8; font-weight: 600;}
+        
+        input {
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 18px 26px; border-radius: 12px; font-family: 'Outfit'; width: 130px; font-size: 22px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white; border: none; padding: 12px 30px; height: 46px;
+            border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; font-family: 'Outfit';
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); }
+
+        .metrics-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;
+        }
+        
+        .metric-card { padding: 40px; text-align: center; }
+        .metric-value { font-size: 82px; font-weight: 800; margin: 15px 0; color: #38bdf8; display:flex; justify-content:center; align-items:center; gap: 15px;}
+        .metric-label { font-size: 20px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        .stage-title { font-size: 26px; font-weight: 700; color: #cbd5e1; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;}
+        .car-container { display: flex; flex-wrap: wrap; gap: 20px; min-height: 110px; padding: 20px; background: rgba(0,0,0,0.1); border-radius: 12px;}
+        
+        .car {
+            background: linear-gradient(135deg, #14b8a6, #0ea5e9);
+            padding: 18px 30px; border-radius: 30px; font-size: 22px; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
+        }
+        .car i { margin-right: 12px; font-size: 24px; }
+
+        .car.wait { background: linear-gradient(135deg, #64748b, #475569); box-shadow: none; opacity: 0.8;}
+        .car.dry { background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 4px 10px rgba(234, 88, 12, 0.4); }
+
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
+
+        .metrics-subgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .sub-metric {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .sub-metric span:first-child {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .sub-metric span:last-child {
+            font-size: 28px;
+            font-weight: 800;
+            color: #38bdf8;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header glass">
+        <div style="display:flex; align-items:center;">
+            <div class="pulse" id="pulse"></div>
+            <h1>Oto Yıkama Kapasite Analizi (Canlı İzleme)</h1>
+        </div>
+        <div style="color: #94a3b8; font-weight:600;">Simülasyon Hızı: ~15x</div>
+    </div>
+
+    <div class="controls glass" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="stage-title" style="font-size: 14px; margin-bottom: 10px;">🚗 KÜÇÜK ARAÇ</div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group">
+                    <label>Yıkama Personeli</label>
+                    <input type="number" id="small_wash_staff" value="2" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Kurulama Personeli</label>
+                    <input type="number" id="small_dry_staff" value="2" min="1">
+                </div>
+            </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="stage-title" style="font-size: 14px; margin-bottom: 10px;">🚛 BÜYÜK ARAÇ</div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group">
+                    <label>Yıkama Personeli</label>
+                    <input type="number" id="large_wash_staff" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Kurulama Personeli</label>
+                    <input type="number" id="large_dry_staff" value="1" min="1">
+                </div>
+            </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="stage-title" style="font-size: 14px; margin-bottom: 10px;">🚑 GÖREVLİ ARAÇ</div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group">
+                    <label>Yıkama Personeli</label>
+                    <input type="number" id="service_wash_staff" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Kurulama Personeli</label>
+                    <input type="number" id="service_dry_staff" value="1" min="1">
+                </div>
+            </div>
+        </div>
+        <div style="grid-column: span 3; display: flex; gap: 20px; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
+            <div class="input-group">
+                <label>Küçük Kabin</label>
+                <input type="number" id="small_bays" value="2" min="1" style="width: 80px;">
+            </div>
+            <div class="input-group">
+                <label>Büyük Kabin</label>
+                <input type="number" id="large_bays" value="1" min="1" style="width: 80px;">
+            </div>
+            <div class="input-group">
+                <label>Görevli Kabin</label>
+                <input type="number" id="service_bays" value="1" min="1" style="width: 80px;">
+            </div>
+            <div class="input-group">
+                <label>Geliş Sıklığı (Dk)</label>
+                <input type="number" step="0.5" id="arrival" value="10" min="0.5" style="width: 80px;">
+            </div>
+            <div class="input-group">
+                <label>Oynatma Hızı</label>
+                <select id="speed" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 10px; border-radius: 12px; font-family: 'Outfit'; font-size: 14px; width: 120px;">
+                    <option value="400">🐢 Yavaş</option>
+                    <option value="120" selected>🚶 Normal</option>
+                    <option value="40">🚀 Hızlı</option>
+                </select>
+            </div>
+            <button id="runBtn" onclick="startSim()" style="flex-grow: 1; height: 70px; font-size: 20px;">Simülasyonu Başlat & Oynat</button>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card glass">
+            <div class="metric-label">Biten Toplam Araç</div>
+            <div class="metric-value" id="m_total">0</div>
+        </div>
+        
+        <div class="metric-card glass">
+            <div class="metric-label">Küçük Araç Bekleme</div>
+            <div class="metrics-subgrid">
+                <div class="sub-metric"><span>Yıkama:</span><span id="small_wash">~</span></div>
+                <div class="sub-metric"><span>Kurulama:</span><span id="small_dry">~</span></div>
+            </div>
+        </div>
+
+        <div class="metric-card glass">
+            <div class="metric-label">Büyük Araç Bekleme</div>
+            <div class="metrics-subgrid">
+                <div class="sub-metric"><span>Yıkama:</span><span id="large_wash">~</span></div>
+                <div class="sub-metric"><span>Kurulama:</span><span id="large_dry">~</span></div>
+            </div>
+        </div>
+
+        <div class="metric-card glass">
+            <div class="metric-label">Görevli Araç Bekleme</div>
+            <div class="metrics-subgrid">
+                <div class="sub-metric"><span>Yıkama:</span><span id="service_wash">~</span></div>
+                <div class="sub-metric"><span>Kurulama:</span><span id="service_dry">~</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="visualizer glass">
+            <div>
+                <div class="stage-title">🚿 Yıkama Kuyruğu (Bahçe)</div>
+                <div class="car-container" id="arrival_q"></div>
+            </div>
+            <div>
+                <div class="stage-title">🔵 Küçük Araç Kabinleri (Motor/Otomobil)</div>
+                <div class="car-container" id="wash_bays_small"></div>
+            </div>
+            <div>
+                <div class="stage-title">🚛 Büyük Araç Kabinleri (Tır/Otobüs)</div>
+                <div class="car-container" id="wash_bays_large"></div>
+            </div>
+            <div>
+                <div class="stage-title">🚑 Görevli Araç Kabinleri</div>
+                <div class="car-container" id="wash_bays_service"></div>
+            </div>
+            <div>
+                <div class="stage-title">⏳ Kurulama / Detay Kuyruğu</div>
+                <div class="car-container" id="dry_q"></div>
+            </div>
+            <div>
+                <div class="stage-title">🟠 Kurulama Yapan Personeller</div>
+                <div class="car-container" id="dry_workers"></div>
+            </div>
+        </div>
+
+        <div class="logs glass" id="logs">
+            <!-- Logs will appear here -->
+            <div style="color:#64748b; text-align:center; margin-top: 50px;">Simülasyon başlatıldığında loglar buraya akacaktır...</div>
+        </div>
+    </div>
+
+    <script>
+        let timerId = null;
+        async function startSim() {
+            const params = {
+                small_bays: document.getElementById('small_bays').value,
+                large_bays: document.getElementById('large_bays').value,
+                service_bays: document.getElementById('service_bays').value,
+                small_wash_staff: document.getElementById('small_wash_staff').value,
+                small_dry_staff: document.getElementById('small_dry_staff').value,
+                large_wash_staff: document.getElementById('large_wash_staff').value,
+                large_dry_staff: document.getElementById('large_dry_staff').value,
+                service_wash_staff: document.getElementById('service_wash_staff').value,
+                service_dry_staff: document.getElementById('service_dry_staff').value,
+                arrival_rate: document.getElementById('arrival').value,
+                sim_time: 480
+            };
+            
+            const speedTimeMs = document.getElementById('speed').value;
+            const btn = document.getElementById('runBtn');
+            
+            btn.innerText = "Hesaplanıyor...";
+            btn.disabled = true;
+
+            // Reset UI
+            document.getElementById('logs').innerHTML = '';
+            ['arrival_q', 'wash_bays_small', 'wash_bays_large', 'wash_bays_service', 'dry_q', 'dry_workers'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            document.getElementById('m_total').innerText = '0';
+            ['small_wash', 'small_dry', 'large_wash', 'large_dry', 'service_wash', 'service_dry'].forEach(id => {
+                document.getElementById(id).innerText = '~';
+            });
+
+            // Fetch Simulation Data
+            const query = new URLSearchParams(params).toString();
+            const res = await fetch(`/api/simulate?${query}`);
+            const data = await res.json();
+            
+            btn.innerText = "Simülasyon Oynatılıyor...";
+            document.getElementById('pulse').classList.add('active');
+
+            // Playback Data (Real-time Feel)
+            playEvents(data.events, data.metrics, parseInt(speedTimeMs));
+        }
+
+        function playEvents(events, finalMetrics, speedTimeMs) {
+            if(timerId) clearInterval(timerId);
+            
+            let simTime = 0;
+            let eventIndex = 0;
+            let completed = 0;
+            
+            const pools = {
+               arrival_q: new Set(),
+               wash_bays_small: new Set(),
+               wash_bays_large: new Set(),
+               wash_bays_service: new Set(),
+               dry_q: new Set(),
+               dry_workers: new Set()
+            };
+
+            const getIcon = (type) => {
+                const icons = {
+                    "Motor": "fa-motorcycle",
+                    "Otomobil": "fa-car",
+                    "Otobüs": "fa-bus",
+                    "Tır": "fa-truck-moving",
+                    "Görevli Araç": "fa-ambulance"
+                };
+                return icons[type] || "fa-car";
+            };
+
+            const renderPools = () => {
+                document.getElementById('arrival_q').innerHTML = [...pools.arrival_q].map(c => `<div class="car wait"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('wash_bays_small').innerHTML = [...pools.wash_bays_small].map(c => `<div class="car"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('wash_bays_large').innerHTML = [...pools.wash_bays_large].map(c => `<div class="car"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('wash_bays_service').innerHTML = [...pools.wash_bays_service].map(c => `<div class="car"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('dry_q').innerHTML = [...pools.dry_q].map(c => `<div class="car wait"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('dry_workers').innerHTML = [...pools.dry_workers].map(c => `<div class="car dry"><i class="fas ${getIcon(c.v_type)}"></i> ${c.id}</div>`).join('');
+                document.getElementById('m_total').innerText = completed;
+            };
+
+            timerId = setInterval(() => {
+                let changed = false;
+                
+                while(eventIndex < events.length && events[eventIndex].time <= simTime) {
+                    const ev = events[eventIndex];
+                    const logPanel = document.getElementById('logs');
+                    
+                    const el = document.createElement('div');
+                    el.className = `log-entry ${ev.type}`;
+                    el.innerHTML = `<span style="color:#94a3b8">Dk ${ev.time.toFixed(1)}:</span> ${ev.msg}`;
+                    logPanel.prepend(el);
+
+                    const carObj = {id: ev.car, v_type: ev.v_type};
+                    
+                    if(ev.type === 'arrival') { 
+                        pools.arrival_q.add(carObj); 
+                    }
+                    if(ev.type === 'enter_wash') { 
+                        const found = [...pools.arrival_q].find(p => p.id === ev.car);
+                        pools.arrival_q.delete(found);
+                        
+                        if (ev.v_type === 'Motor' || ev.v_type === 'Otomobil') pools.wash_bays_small.add(found);
+                        else if (ev.v_type === 'Otobüs' || ev.v_type === 'Tır') pools.wash_bays_large.add(found);
+                        else pools.wash_bays_service.add(found);
+                    }
+                    if(ev.type === 'finish_wash') { 
+                        let found = [...pools.wash_bays_small].find(p => p.id === ev.car);
+                        if(found) pools.wash_bays_small.delete(found);
+                        else {
+                            found = [...pools.wash_bays_large].find(p => p.id === ev.car);
+                            if(found) pools.wash_bays_large.delete(found);
+                            else {
+                                found = [...pools.wash_bays_service].find(p => p.id === ev.car);
+                                pools.wash_bays_service.delete(found);
+                            }
+                        }
+                        pools.dry_q.add(found); 
+                    }
+                    if(ev.type === 'enter_dry') { 
+                        const found = [...pools.dry_q].find(p => p.id === ev.car);
+                        pools.dry_q.delete(found);
+                        pools.dry_workers.add(found); 
+                    }
+                    if(ev.type === 'finish_dry') { 
+                        const found = [...pools.dry_workers].find(p => p.id === ev.car);
+                        pools.dry_workers.delete(found);
+                        completed++; 
+                    }
+                    
+                    changed = true;
+                    eventIndex++;
+                }
+                
+                if (changed) renderPools();
+
+                if(eventIndex >= events.length) {
+                    clearInterval(timerId);
+                    document.getElementById('pulse').classList.remove('active');
+                    document.getElementById('runBtn').innerText = "Simülasyonu Başlat & Oynat";
+                    document.getElementById('runBtn').disabled = false;
+                    document.getElementById('small_wash').innerText = finalMetrics.small.wash + ' dk';
+                    document.getElementById('small_dry').innerText = finalMetrics.small.dry + ' dk';
+                    document.getElementById('large_wash').innerText = finalMetrics.large.wash + ' dk';
+                    document.getElementById('large_dry').innerText = finalMetrics.large.dry + ' dk';
+                    document.getElementById('service_wash').innerText = finalMetrics.service.wash + ' dk';
+                    document.getElementById('service_dry').innerText = finalMetrics.service.dry + ' dk';
+                }
+                
+                simTime += 0.5; // Simulate 0.5 minutes every tick
+            }, speedTimeMs); // Flexibly use the user's chosen speed interval
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>
