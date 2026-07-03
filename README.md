@@ -5,7 +5,7 @@ Bu proje, bir oto yıkama istasyonunun günlük iş akışını, araç yoğunlu�
 
 ## 👤 Proje Sahibi
 - **İsim:** Mehmet Özbayram
-- **Okul No:** 22430070049
+
 
 ---
 
